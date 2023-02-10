@@ -1,0 +1,21 @@
+{
+  "name": "registration_and_login_form",
+  "version": "1.0.0",
+  "description": "This is the Practice Registration form...",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/app.js -e hbs,js"
+  },
+  "author": "Ritesh Barapatre",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "hbs": "^4.2.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.9.1",
+    "validator": "^13.9.0"
+  }
+}
