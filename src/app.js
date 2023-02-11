@@ -6,7 +6,8 @@ const port = process.env.PORT || 8000
 const connect = require('./db/connect')
 const hbs = require('hbs')
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+const cookie_parser = require('cookie-parser')
+const auth = require('./middleware/auth')
 
 connect()
 
@@ -15,7 +16,7 @@ const e = require('express')
 
 const app = express()
 app.set('view engine', 'hbs')
-
+app.use(cookie_parser())
 app.use(express.json())
 
 //This below line helps to get the data of the form
@@ -44,14 +45,35 @@ const securePassword = async (password)=>{
 
 // createToken()
 
-app.get('/',(req,res)=>{
-    res.render('index')
+app.get('/',(req,res)=>{ 
+    res.render('index')  
 })
 app.get('/register',(req,res)=>{
     res.render('register')
 })
 app.get('/login',(req,res)=>{
     res.render('login')
+})
+app.get('/logout', auth,async (req,res)=>{
+    try {
+
+        //Log out from single device
+        // req.user.tokens = req.user.tokens.filter((elem)=>{
+        //     return elem.token !== req.token
+        // })
+
+        //Log out from all device
+        req.user.tokens = []
+        res.clearCookie('jwt')
+        await req.user.save()
+        res.render('login')
+    } catch (error) {
+        res.status(500).send(error)
+    }
+})
+app.get('/secret',auth,(req,res)=>{
+    console.log(req.cookies.jwt)
+    res.render('secret')
 })
 
 //Create a new user 
@@ -70,8 +92,15 @@ app.post('/register',async (req,res)=>{
             })
 
             const datasave =await user.save()
-            res.status(200).render('index')
             const token = await user.generateAuthToken()
+            res.cookie('jwt',token,{
+                //This sets the expiry of a cookie
+                expires : new Date(Date.now() + 300000),
+                
+                //This sets that the client side scripting language have no affect on it 
+                httpOnly : true
+             })
+            res.status(200).render('index')
         }
         else{
             res.status(404).send("Password is not Matching")
@@ -95,6 +124,14 @@ app.post('/login',async (req,res)=>{
          const match = await bcrypt.compare(password, decrypt);
          const token = await validuser.generateAuthToken()
 
+        //This is how we set cookie 
+         res.cookie('jwt',token,{
+            //This sets the expiry of a cookie
+            expires : new Date(Date.now() + 300000),
+            
+            //This sets that the client side scripting language have no affect on it 
+            httpOnly : true
+         })
          if(match){
             res.status(200).render('index')
          }

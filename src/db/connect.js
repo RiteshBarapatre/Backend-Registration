@@ -9,5 +9,4 @@ const connect = ()=>{
         console.log(error)
     })
 }
-
 module.exports = connect
